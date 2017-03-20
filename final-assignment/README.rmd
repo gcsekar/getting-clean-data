@@ -51,8 +51,133 @@ unzip(zipfile="./data/FUCIData.zip", exdir="./data")
 
 > Build a list of files
 ```{r}
-path_rf <- file.path("./data" , "UCI HAR Dataset")
-files<-list.files(path_rf, recursive=TRUE)
+files.path <- file.path("./data" , "UCI HAR Dataset")
+files <- list.files(files.path, recursive=TRUE)
 files
 ```
 
+# Processing the data
+
+## Data Organization
+
+Looking at the files and based on README.txt, it is evident tha:
+
+1) Features contains the variabe names
+2) Training and testing data are available in respective folders
+3) Activity labels are documented separately.
+
+## Read the data
+
+> Reading Activities
+
+```{r}
+activity.data.test <- read.table(file.path(files.path,"test","Y_test.txt"), header=FALSE)
+activity.data.train <- read.table(file.path(files.path,"train","Y_train.txt"), header=FALSE)
+```
+
+> Reading Subjects
+
+```{r}
+subjects.data.test <- read.table(file.path(files.path,"test","subject_test.txt"), header=FALSE)
+subjects.data.train <- read.table(file.path(files.path,"train","subject_train.txt"), header=FALSE)
+```
+
+> Reading Features
+
+```{r}
+features.data.test <- read.table(file.path(files.path,"test","x_test.txt"), header=FALSE)
+features.data.train <- read.table(file.path(files.path,"train","x_train.txt"), header=FALSE)
+```
+
+## Analyze the data
+```{r}
+summary(activity.data.test)
+summary(activity.data.train)
+```
+
+```{r}
+summary(subjects.data.test)
+summary(subjects.data.train)
+```
+
+```{r}
+str(features.data.test)
+str(features.data.train)
+```
+
+# Objective 1: Merge the training and test data sets
+
+## Combine the datasets
+
+```{r}
+activity.data <- rbind(activity.data.train, activity.data.test)
+subjects.data <- rbind(subjects.data.train, subjects.data.test)
+features.data <- rbind(features.data.train, features.data.test)
+```
+
+## Name the dataset
+
+```{r}
+names(activity.data) <- "activity"
+names(subjects.data) <- "subject"
+
+#Read the feature names
+features.names <- read.table(file.path(files.path, "features.txt"), header = FALSE)
+
+names(features.data) <- features.names$V2
+```
+
+## Merging data
+
+```{r}
+subject.activity <- cbind(subjects.data, activity.data)
+merged.data <- cbind(features.data, subject.activity)
+```
+
+# Objective 2: Extract Mean & SD for each measurement
+
+## Select all mean and std deviations and create a subset
+
+```{r}
+library(dplyr)
+
+subset.name <- features.names$V2[grep("mean\\(\\)|std\\(\\)", features.names$V2)]
+subset.names <- c(as.character(subset.name), "subject","activity")
+#subset.names <- c(subset.name, 562,563)
+subset.data <- subset(merged.data,select=subset.names)
+
+```
+
+# Objective 3: Set activity names and associate with subset data
+
+```{r}
+activity.labels <- read.table(file.path(files.path,"activity_labels.txt"), header=FALSE)
+
+# Associate with subset.data$activity by converting to factor
+subset.data$activity <- as.factor(subset.data$activity)
+levels(subset.data$activity) <- activity.labels$V2
+```
+
+# Objective 4: Appropriately label the data set
+
+```{r}
+names(subset.data)<-gsub("^t", "time", names(subset.data))
+names(subset.data)<-gsub("^f", "frequency", names(subset.data))
+names(subset.data)<-gsub("Acc", "Accelerometer", names(subset.data))
+names(subset.data)<-gsub("Gyro", "Gyroscope", names(subset.data))
+names(subset.data)<-gsub("Mag", "Magnitude", names(subset.data))
+names(subset.data)<-gsub("BodyBody", "Body", names(subset.data))
+
+names(subset.data)
+
+```
+
+# Objective 5: Create an independent tidy data set
+
+```{r}
+library(plyr)
+tidy.data <- aggregate(. ~ subject + activity, subset.data, mean)
+tidy.data <- tidy.data[order(tidy.data$activity),]
+write.table(tidy.data, file = "finaldata.csv",row.name=FALSE, sep=",",eol = "\r\n")
+
+```
