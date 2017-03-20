@@ -181,3 +181,10 @@ tidy.data <- tidy.data[order(tidy.data$activity),]
 write.table(tidy.data, file = "finaldata.csv",row.name=FALSE, sep=",",eol = "\r\n")
 
 ```
+
+# Objective 6: Writing to a codebook
+```{r}
+library(memisc)
+Write(codebook(subset.data),file="codebook.md")
+```
+

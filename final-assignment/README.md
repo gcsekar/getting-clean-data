@@ -594,3 +594,66 @@ tidy.data <- aggregate(. ~ subject + activity, subset.data, mean)
 tidy.data <- tidy.data[order(tidy.data$activity),]
 write.table(tidy.data, file = "finaldata.csv",row.name=FALSE, sep=",",eol = "\r\n")
 ```
+
+# Objective 6: Writing to a codebook
+
+```r
+library(memisc)
+```
+
+```
+## Warning: package 'memisc' was built under R version 3.3.3
+```
+
+```
+## Loading required package: lattice
+```
+
+```
+## Loading required package: MASS
+```
+
+```
+## 
+## Attaching package: 'MASS'
+```
+
+```
+## The following object is masked from 'package:dplyr':
+## 
+##     select
+```
+
+```
+## 
+## Attaching package: 'memisc'
+```
+
+```
+## The following object is masked from 'package:plyr':
+## 
+##     rename
+```
+
+```
+## The following objects are masked from 'package:dplyr':
+## 
+##     collect, query, recode, rename
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     contr.sum, contr.treatment, contrasts
+```
+
+```
+## The following object is masked from 'package:base':
+## 
+##     as.array
+```
+
+```r
+Write(codebook(subset.data),file="codebook.md")
+```
+
